@@ -1,34 +1,31 @@
 package com.example.mymvvmdemo.view_model
 
-import android.content.Context
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import com.example.mymvvmdemo.base.BaseViewModel
 import com.example.mymvvmdemo.model.ArticleData
+import com.example.mymvvmdemo.model.Chapters
 import com.example.mymvvmdemo.model.ChaptersList
-import com.example.mymvvmdemo.model.LoadState
-import com.example.mymvvmdemo.model.User
 import com.example.mymvvmdemo.net.Repository
 import com.example.mymvvmdemo.util.launch
 import com.jeremyliao.liveeventbus.LiveEventBus
-import kotlinx.coroutines.*
-import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+
 
 class MainViewModel : BaseViewModel() {
 
+    //liveData通常和viewModel一起使用
+//    private val chapters: MutableLiveData<Chapters>? = null
+
+   val chapters:MutableLiveData<Chapters> by lazy {
+       MutableLiveData<Chapters>()
+   }
 
     fun getData() {
         GlobalScope.launch {
             coroutineScope {
                 setData()
-            }
-        }
-    }
-
-    fun getData2(chapterId: String, chapterNum: String){
-        GlobalScope.launch {
-            coroutineScope {
-                setData2(chapterId, chapterNum)
             }
         }
     }
@@ -43,11 +40,23 @@ class MainViewModel : BaseViewModel() {
         //        loadState.value = LoadState.Fail()
     })
 
-    private suspend fun setData2(chapterId: String, chapterNum: String) = launch({
+    fun getArticleList(chapterId: String, chapterNum: String){
+        GlobalScope.launch {
+            coroutineScope {
+                setArticleList(chapterId, chapterNum)
+            }
+        }
+    }
+    private suspend fun setArticleList(chapterId: String, chapterNum: String) = launch({
         var myData: ChaptersList = Repository.getWxArticleList(chapterId, chapterNum)
-        LiveEventBus.get("my_key2")
+        LiveEventBus.get("article_list")
             .post(myData)
     }, {
 
     })
+
+    fun postDataToSecondFragment(data: Chapters){
+        LiveEventBus.get("article_data")
+            .post(data)
+    }
 }
